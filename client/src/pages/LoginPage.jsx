@@ -1,19 +1,44 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 import assets from "../assets/assets";
 
 const LoginPage = () => {
+  const { login, signup } = useAuth();
+  const navigate = useNavigate();
   const [currentState, setCurrentState] = useState("Sign up");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [bio, setBio] = useState("");
   const [isDataSubmitted, setIsDataSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const onSubmitHandler = (event) => {
+  const onSubmitHandler = async (event) => {
     event.preventDefault();
-    if (currentState === "Sign up" && !isDataSubmitted) {
-      setIsDataSubmitted(true);
-      return;
+    setLoading(true);
+
+    try {
+      if (currentState === "Sign up") {
+        if (!isDataSubmitted) {
+          setIsDataSubmitted(true);
+          setLoading(false);
+          return;
+        } else {
+          await signup(fullName, email, password, bio);
+          navigate("/");
+        }
+      } else {
+        await login(email, password);
+        navigate("/");
+      }
+    } catch (error) {
+      console.error(error);
+      alert(
+        error.response?.data?.error || error.message || "An error occurred",
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -82,14 +107,19 @@ const LoginPage = () => {
 
         <button
           type="submit"
-          className="py-3 bg-linear-to-r from-purple-400 to-violet-600 text-white rounded-md cursor-pointer"
+          disabled={loading}
+          className="py-3 bg-linear-to-r from-purple-400 to-violet-600 text-white rounded-md cursor-pointer disabled:opacity-50"
         >
-          {currentState === "Sign up" ? "Create Account" : "Login Now"}
+          {loading
+            ? "Loading..."
+            : currentState === "Sign up"
+              ? "Create Account"
+              : "Login Now"}
         </button>
 
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <input type="checkbox" />
-          <p>Agree to the terms of use & parvicy policy.</p>
+          <p>Agree to the terms of use & privacy policy.</p>
         </div>
 
         <div className="flex flex-col gap-2">

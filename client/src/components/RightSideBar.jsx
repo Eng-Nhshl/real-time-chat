@@ -1,7 +1,15 @@
-import React from "react";
+import { Navigate } from "react-router-dom";
 import assets, { imagesDummyData } from "../assets/assets";
+import { useAuth } from "../hooks/useAuth";
 
 const RightSideBar = ({ selectedUser }) => {
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    Navigate("/login");
+  };
+
   return (
     selectedUser && (
       <div
@@ -36,8 +44,10 @@ const RightSideBar = ({ selectedUser }) => {
             ))}
           </div>
         </div>
-
-        <button className="absolute bottom-5 left-1/2 transform -translate-x-1/2 bg-linear-to-r from-purple-400 to-violet-600 text-white border-none text-sm font-light py-2 px-20 rounded-full cursor-pointer">
+        <button
+          onClick={() => handleLogout()}
+          className="absolute bottom-5 left-1/2 transform -translate-x-1/2 bg-linear-to-r from-purple-400 to-violet-600 text-white border-none text-sm font-light py-2 px-20 rounded-full cursor-pointer"
+        >
           Logout
         </button>
       </div>

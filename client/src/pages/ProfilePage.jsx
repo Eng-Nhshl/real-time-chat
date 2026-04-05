@@ -1,17 +1,58 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import authService from "../services/authService";
 import assets from "../assets/assets";
 
 const ProfilePage = () => {
+  const { user, logout, updateUser } = useAuth();
   const [selectedImage, setSelectedImage] = useState(null);
-  const [name, setName] = useState("Martin Johnson");
-  const [bio, setBio] = useState("Hi Everyone, I am Using QuickChat.");
+  const [name, setName] = useState("");
+  const [bio, setBio] = useState("");
 
   const navigate = useNavigate();
 
-  const handleSubmit = (event) => {
+  useEffect(() => {
+    if (!user) return;
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setName(user.fullName || "");
+    setBio(user.bio || "");
+  }, [user]);
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    navigate("/");
+    try {
+      if (selectedImage) {
+        const reader = new FileReader();
+        reader.readAsDataURL(selectedImage);
+        reader.onload = async () => {
+          const profilePic = reader.result;
+          const updatedUser = await authService.updateProfile({
+            fullName: name,
+            bio,
+            profilePic,
+          });
+          updateUser(updatedUser);
+          navigate("/");
+        };
+        return;
+      }
+      const updatedUser = await authService.updateProfile({
+        fullName: name,
+        bio,
+        profilePic: user?.profilePic || "",
+      });
+      updateUser(updatedUser);
+      navigate("/");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
   };
 
   return (
@@ -38,7 +79,7 @@ const ProfilePage = () => {
               src={
                 selectedImage
                   ? URL.createObjectURL(selectedImage)
-                  : assets.avatar_icon
+                  : user?.profilePic || assets.avatar_icon
               }
               alt=""
               className={`w-12 h-12 ${selectedImage && "rounded-full"}`}
@@ -77,6 +118,12 @@ const ProfilePage = () => {
           alt=""
         />
       </div>
+      <button
+        onClick={handleLogout}
+        className="absolute bottom-5 left-1/2 transform -translate-x-1/2 bg-linear-to-r from-purple-400 to-violet-600 text-white border-none text-sm font-light py-2 px-20 rounded-full cursor-pointer"
+      >
+        Logout
+      </button>
     </div>
   );
 };
