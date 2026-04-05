@@ -70,7 +70,7 @@ real-time-chat/
 1. **Clone the repository**
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Eng-Nhshl/real-time-chat
    cd real-time-chat
    ```
 
